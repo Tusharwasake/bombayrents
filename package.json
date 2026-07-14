@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "vitest run"
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.1086.0",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19",
     "pngjs": "^7.0.0",
     "tailwindcss": "^4.1.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

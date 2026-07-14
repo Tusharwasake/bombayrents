@@ -27,6 +27,8 @@ interface Props {
   matchPreview: MatchPreviewItem[] | null;
   toLets: ToLetSpot[];
   focus: { lat: number; lng: number; at: number } | null;
+  locate: number | null;
+  onLocateError: (message: string) => void;
   onMapClick: (lat: number, lng: number) => void;
   onPickHere: (purpose: PickPurpose, lat: number, lng: number) => void;
   onSelectPin: (pinId: string) => void;
@@ -111,6 +113,8 @@ export default function MapView({
   matchPreview,
   toLets,
   focus,
+  locate,
+  onLocateError,
   onMapClick,
   onPickHere,
   onSelectPin,
@@ -119,14 +123,17 @@ export default function MapView({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
+  const geolocateRef = useRef<maplibregl.GeolocateControl | null>(null);
   const loadedRef = useRef(false);
   const pickingRef = useRef(picking);
+  const onLocateErrorRef = useRef(onLocateError);
   const onMapClickRef = useRef(onMapClick);
   const onPickHereRef = useRef(onPickHere);
   const onSelectPinRef = useRef(onSelectPin);
   const onSelectToLetRef = useRef(onSelectToLet);
   const onBoundsChangeRef = useRef(onBoundsChange);
   pickingRef.current = picking;
+  onLocateErrorRef.current = onLocateError;
   onMapClickRef.current = onMapClick;
   onPickHereRef.current = onPickHere;
   onSelectPinRef.current = onSelectPin;
@@ -150,76 +157,28 @@ export default function MapView({
     mapRef.current = map;
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
-    map.addControl(
-      new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true } }),
-      "bottom-right"
-    );
+    const geolocate = new maplibregl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      showAccuracyCircle: true,
+    });
+    geolocate.on("outofmaxbounds", () => {
+      onLocateErrorRef.current(
+        "You're outside Mumbai / Navi Mumbai right now — the map stays within the region."
+      );
+    });
+    geolocate.on("error", (e: GeolocationPositionError) => {
+      onLocateErrorRef.current(
+        e.code === e.PERMISSION_DENIED
+          ? "Location permission denied — allow it in your browser to use this."
+          : "Couldn't get your location — try again."
+      );
+    });
+    map.addControl(geolocate, "bottom-right");
+    geolocateRef.current = geolocate;
 
     map.on("load", () => {
-      // --- Transit overlay (local trains + metro), hidden until toggled ---
-      map.addSource("transit-lines", {
-        type: "geojson",
-        data: "/data/transit-lines.geojson",
-      });
-      map.addSource("stations", { type: "geojson", data: "/data/stations.geojson" });
-
-      map.addLayer({
-        id: "transit-suburban",
-        type: "line",
-        source: "transit-lines",
-        filter: ["!=", ["get", "group"], "metro"],
-        layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": ["get", "color"],
-          "line-width": 3,
-          "line-opacity": 0.8,
-        },
-      });
-      map.addLayer({
-        id: "transit-metro",
-        type: "line",
-        source: "transit-lines",
-        filter: ["==", ["get", "group"], "metro"],
-        layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": ["get", "color"],
-          "line-width": 2.5,
-          "line-opacity": 0.8,
-          "line-dasharray": [2, 1.5],
-        },
-      });
-      map.addLayer({
-        id: "station-dot",
-        type: "circle",
-        source: "stations",
-        minzoom: 10.5,
-        layout: { visibility: "none" },
-        paint: {
-          "circle-radius": 3.5,
-          "circle-color": "#ffffff",
-          "circle-stroke-width": 1.5,
-          "circle-stroke-color": "#334155",
-        },
-      });
-      map.addLayer({
-        id: "station-label",
-        type: "symbol",
-        source: "stations",
-        minzoom: 12,
-        layout: {
-          visibility: "none",
-          "text-field": ["get", "name"],
-          "text-font": ["Noto Sans Regular"],
-          "text-size": 10,
-          "text-offset": [0, 1],
-          "text-anchor": "top",
-        },
-        paint: {
-          "text-color": "#334155",
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1.2,
-        },
-      });
+      // (Transit sources/layers are added lazily on first toggle — see
+      // syncTransit — so the ~76KB of GeoJSON isn't fetched on every load.)
 
       // --- Rent pins ---
       map.addSource("pins", {
@@ -552,6 +511,11 @@ export default function MapView({
     map.flyTo({ center: [focus.lng, focus.lat], zoom: 14.5, duration: 1200 });
   }, [focus]);
 
+  // "My current location" → trigger the geolocate control (blue dot + fly-to).
+  useEffect(() => {
+    if (locate) geolocateRef.current?.trigger();
+  }, [locate]);
+
   useEffect(() => {
     containerRef.current?.classList.toggle("crosshair-cursor", picking !== null);
   }, [picking]);
@@ -560,10 +524,94 @@ export default function MapView({
 }
 
 function syncTransit(map: MLMap, show: boolean) {
+  if (show && !map.getSource("transit-lines")) addTransitLayers(map);
   const visibility = show ? "visible" : "none";
   ["transit-suburban", "transit-metro", "station-dot", "station-label"].forEach(
     (layer) => {
       if (map.getLayer(layer)) map.setLayoutProperty(layer, "visibility", visibility);
     }
+  );
+}
+
+// Local trains + metro overlay. Added on first toggle only, so the GeoJSON
+// isn't downloaded by users who never open it. Inserted beneath "clusters"
+// to keep rent pins drawn on top.
+function addTransitLayers(map: MLMap) {
+  map.addSource("transit-lines", {
+    type: "geojson",
+    data: "/data/transit-lines.geojson",
+  });
+  map.addSource("stations", { type: "geojson", data: "/data/stations.geojson" });
+
+  const beforeId = map.getLayer("clusters") ? "clusters" : undefined;
+
+  map.addLayer(
+    {
+      id: "transit-suburban",
+      type: "line",
+      source: "transit-lines",
+      filter: ["!=", ["get", "group"], "metro"],
+      layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": 3,
+        "line-opacity": 0.8,
+      },
+    },
+    beforeId
+  );
+  map.addLayer(
+    {
+      id: "transit-metro",
+      type: "line",
+      source: "transit-lines",
+      filter: ["==", ["get", "group"], "metro"],
+      layout: { visibility: "none", "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": 2.5,
+        "line-opacity": 0.8,
+        "line-dasharray": [2, 1.5],
+      },
+    },
+    beforeId
+  );
+  map.addLayer(
+    {
+      id: "station-dot",
+      type: "circle",
+      source: "stations",
+      minzoom: 10.5,
+      layout: { visibility: "none" },
+      paint: {
+        "circle-radius": 3.5,
+        "circle-color": "#ffffff",
+        "circle-stroke-width": 1.5,
+        "circle-stroke-color": "#334155",
+      },
+    },
+    beforeId
+  );
+  map.addLayer(
+    {
+      id: "station-label",
+      type: "symbol",
+      source: "stations",
+      minzoom: 12,
+      layout: {
+        visibility: "none",
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 10,
+        "text-offset": [0, 1],
+        "text-anchor": "top",
+      },
+      paint: {
+        "text-color": "#334155",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1.2,
+      },
+    },
+    beforeId
   );
 }

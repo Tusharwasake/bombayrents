@@ -7,12 +7,21 @@ export const metadata: Metadata = {
     "Crowdsourced map of actual rents paid by tenants across Mumbai and Navi Mumbai. Anonymous, free, no brokerage.",
 };
 
+// Map style, tiles and glyphs all come from openfreemap; pins come from
+// Supabase. Warming those connections up front shaves DNS+TLS round trips
+// off the map's first paint. (React hoists these links into <head>.)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className="h-full bg-slate-100 text-slate-900 antialiased">
+        <link rel="preconnect" href="https://tiles.openfreemap.org" crossOrigin="anonymous" />
+        {supabaseUrl && (
+          <link rel="preconnect" href={supabaseUrl} crossOrigin="anonymous" />
+        )}
         {children}
       </body>
     </html>

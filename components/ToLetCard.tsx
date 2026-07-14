@@ -41,6 +41,8 @@ export default function ToLetCard({ spot, onClose, onReport }: Props) {
           <img
             src={spot.photo_url}
             alt="To-Let board"
+            loading="lazy"
+            decoding="async"
             className="w-full rounded-xl object-cover"
           />
         ) : (

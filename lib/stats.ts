@@ -28,9 +28,17 @@ export interface BhkStat {
 }
 
 export function statsByBhk(pins: RentPin[]): BhkStat[] {
+  // Single pass over the pins instead of one filter per BHK option — this
+  // runs on every map pan, over every pin in view.
+  const groups = new Map<Bhk, RentPin[]>();
+  for (const p of pins) {
+    const group = groups.get(p.bhk);
+    if (group) group.push(p);
+    else groups.set(p.bhk, [p]);
+  }
   return BHK_OPTIONS.flatMap((bhk) => {
-    const group = pins.filter((p) => p.bhk === bhk);
-    if (group.length === 0) return [];
+    const group = groups.get(bhk);
+    if (!group) return [];
     return [
       {
         bhk,

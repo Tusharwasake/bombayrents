@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { formatINR, statsByBhk } from "@/lib/stats";
 import { Bhk, BHK_COLORS, RentPin } from "@/lib/types";
 
@@ -9,9 +9,11 @@ interface Props {
   bhkFilter: Bhk | null;
 }
 
-export default function StatsPanel({ pins, bhkFilter }: Props) {
+// memo: the parent re-renders on every toast/selection/modal change, but the
+// pins array identity only changes when the viewport or filter does.
+export default memo(function StatsPanel({ pins, bhkFilter }: Props) {
   const [open, setOpen] = useState(true);
-  const stats = statsByBhk(pins);
+  const stats = useMemo(() => statsByBhk(pins), [pins]);
 
   return (
     <div className="absolute right-3 top-32 z-10 w-60 sm:top-24">
@@ -79,4 +81,4 @@ export default function StatsPanel({ pins, bhkFilter }: Props) {
       )}
     </div>
   );
-}
+});

@@ -29,15 +29,8 @@ import {
   RentPin,
   ToLetSpot,
 } from "@/lib/types";
-import AddPinModal from "./AddPinModal";
-import FindFlatModal from "./FindFlatModal";
-import ListFlatModal from "./ListFlatModal";
-import PinCard from "./PinCard";
 import SearchBar from "./SearchBar";
 import StatsPanel from "./StatsPanel";
-import SuperheroesModal from "./SuperheroesModal";
-import ToLetCard from "./ToLetCard";
-import ToLetModal from "./ToLetModal";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
@@ -47,6 +40,16 @@ const MapView = dynamic(() => import("./MapView"), {
     </div>
   ),
 });
+
+// Modals and detail cards only appear after a user interaction, so they're
+// code-split out of the initial bundle and fetched on first open.
+const AddPinModal = dynamic(() => import("./AddPinModal"));
+const FindFlatModal = dynamic(() => import("./FindFlatModal"));
+const ListFlatModal = dynamic(() => import("./ListFlatModal"));
+const ToLetModal = dynamic(() => import("./ToLetModal"));
+const SuperheroesModal = dynamic(() => import("./SuperheroesModal"));
+const PinCard = dynamic(() => import("./PinCard"));
+const ToLetCard = dynamic(() => import("./ToLetCard"));
 
 export type City = "mumbai" | "navi-mumbai";
 export type PickPurpose = "rent" | "list" | "seek" | "tolet";
@@ -89,6 +92,7 @@ export default function App() {
   const [focus, setFocus] = useState<{ lat: number; lng: number; at: number } | null>(
     null
   );
+  const [locate, setLocate] = useState<number | null>(null);
 
   useEffect(() => {
     fetchPins()
@@ -278,6 +282,8 @@ export default function App() {
         matchPreview={matches}
         toLets={toLets}
         focus={focus}
+        locate={locate}
+        onLocateError={setToast}
         onMapClick={handleMapClick}
         onPickHere={(purpose, lat, lng) => setPicked({ purpose, lat, lng })}
         onSelectPin={(id) => {
@@ -308,7 +314,10 @@ export default function App() {
         </div>
 
         <div className="hidden flex-1 justify-center pt-1 md:flex">
-          <SearchBar onGo={(lat, lng) => setFocus({ lat, lng, at: Date.now() })} />
+          <SearchBar
+            onGo={(lat, lng) => setFocus({ lat, lng, at: Date.now() })}
+            onLocate={() => setLocate(Date.now())}
+          />
         </div>
 
         <div className="pointer-events-auto flex flex-col items-end gap-2">
@@ -398,7 +407,10 @@ export default function App() {
         </div>
 
         <div className="flex w-full justify-center md:hidden">
-          <SearchBar onGo={(lat, lng) => setFocus({ lat, lng, at: Date.now() })} />
+          <SearchBar
+            onGo={(lat, lng) => setFocus({ lat, lng, at: Date.now() })}
+            onLocate={() => setLocate(Date.now())}
+          />
         </div>
       </header>
 
