@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+.maplibregl-popup-content {
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.18);
+}
+
+.crosshair-cursor .maplibregl-canvas-container {
+  cursor: crosshair !important;
+}
