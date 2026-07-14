@@ -301,7 +301,7 @@ export default function App() {
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap items-start justify-between gap-2 p-3">
         <div className="pointer-events-auto rounded-2xl bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur">
           <h1 className="text-lg font-bold leading-tight">
-            Bombay<span className="text-emerald-600">Rent</span>
+            Bombay<span className="text-emerald-600">Rents</span>
           </h1>
           <p className="text-xs text-slate-500">
             Real rents, no brokers · {pins.length.toLocaleString("en-IN")} pins

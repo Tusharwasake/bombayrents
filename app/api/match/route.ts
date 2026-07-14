@@ -74,10 +74,10 @@ export async function GET(req: NextRequest) {
     const seekerResult = await sendEmail(
       m.seeker_email,
       `🏠 Match found: ${flatDesc}`,
-      `<p>A flat matching your BombayRent search is available:</p>
+      `<p>A flat matching your <a href="https://bombayrents.com">BombayRents</a> search is available:</p>
        <p><b>${flatDesc}</b><br>Approximate location: <a href="${mapLink}">map</a></p>
        <p>Owner contact: <b>${m.listing_email}</b>${m.listing_phone ? ` · <b>${m.listing_phone}</b>` : ""}</p>
-       <p>No broker, no fee. Mention BombayRent when you call.</p>`
+       <p>No broker, no fee. Mention BombayRents when you call.</p>`
     );
     // The seeker email carries the contact — if it failed, don't record the
     // match, so the next run retries it.
@@ -100,11 +100,11 @@ export async function GET(req: NextRequest) {
     // SMS both sides too (best-effort; needs SMS_ENABLED=true + AWS creds).
     const seekerSms = await sendSms(
       m.seeker_phone,
-      `BombayRent match: ${flatDesc}. Owner: ${m.listing_email}${m.listing_phone ? ` / ${m.listing_phone}` : ""}. No broker, no fee.`
+      `BombayRents match: ${flatDesc}. Owner: ${m.listing_email}${m.listing_phone ? ` / ${m.listing_phone}` : ""}. No broker, no fee.`
     );
     const ownerSms = await sendSms(
       m.listing_phone,
-      `BombayRent: a flat-hunter matches your listing (${flatDesc}). Seeker: ${m.seeker_email}${m.seeker_phone ? ` / ${m.seeker_phone}` : ""}.`
+      `BombayRents: a flat-hunter matches your listing (${flatDesc}). Seeker: ${m.seeker_email}${m.seeker_phone ? ` / ${m.seeker_phone}` : ""}.`
     );
     if (seekerSms === "sent") smsSent++;
     if (ownerSms === "sent") smsSent++;
@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
     const result = await sendEmail(
       a.email,
       `🔔 A flat just opened up near your spot: ${flatDesc}`,
-      `<p>You asked BombayRent to tell you the moment a place lists within
+      `<p>You asked <a href="https://bombayrents.com">BombayRents</a> to tell you the moment a place lists within
        1&nbsp;km of a spot you saved — it just happened:</p>
        <p><b>${flatDesc}</b><br>Approximate location: <a href="${mapLink}">map</a></p>
        <p>Drop a seeker pin there on the map and the owner's contact lands in

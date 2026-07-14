@@ -41,7 +41,7 @@ async function fetchTile(x, y) {
   const cached = `${cacheDir}${ZOOM}-${x}-${y}.png`;
   if (existsSync(cached)) return readFileSync(cached);
   const res = await fetch(`https://tile.openstreetmap.org/${ZOOM}/${x}/${y}.png`, {
-    headers: { "User-Agent": "BombayRent-water-mask-generator/1.0 (one-time build script)" },
+    headers: { "User-Agent": "BombayRents-water-mask-generator/1.0 (one-time build script)" },
   });
   if (!res.ok) throw new Error(`tile ${x},${y}: HTTP ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 // Browser-tab favicon: white map pin with a house cut-out on an emerald
-// gradient tile — matches the Bombay(Rent) emerald branding.
+// gradient tile — matches the Bombay(Rents) emerald branding.
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
 

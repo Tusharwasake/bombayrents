@@ -1,6 +1,6 @@
-# Bombay Rent
+# BombayRents
 
-Crowdsourced map of **actual rents paid** across Mumbai & Navi Mumbai — anonymous, free, no brokers. Inspired by the concept behind bengaluru.rent (independent implementation).
+**[bombayrents.com](https://bombayrents.com)** — crowdsourced map of **actual rents paid** across Mumbai & Navi Mumbai — anonymous, free, no brokers. Inspired by the concept behind bengaluru.rent (independent implementation).
 
 ## Run it
 

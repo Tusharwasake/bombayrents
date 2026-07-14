@@ -24,7 +24,7 @@ let ses: SESv2Client | null = null;
 let sns: SNSClient | null = null;
 
 function fromAddress(): string {
-  return process.env.MATCH_FROM_EMAIL ?? "BombayRent <onboarding@resend.dev>";
+  return process.env.MATCH_FROM_EMAIL ?? "BombayRents <onboarding@resend.dev>";
 }
 
 export async function sendEmail(

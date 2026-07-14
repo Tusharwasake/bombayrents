@@ -1,4 +1,4 @@
--- Bombay Rent — Supabase schema (v2)
+-- BombayRents — Supabase schema (v2)
 -- Run this whole file in the Supabase SQL editor. It is idempotent.
 
 create extension if not exists postgis;

@@ -2,9 +2,27 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bombay Rent — real rents in Mumbai & Navi Mumbai, no brokers",
+  metadataBase: new URL("https://bombayrents.com"),
+  title: "BombayRents — real rents in Mumbai & Navi Mumbai, no brokers",
   description:
     "Crowdsourced map of actual rents paid by tenants across Mumbai and Navi Mumbai. Anonymous, free, no brokerage.",
+  applicationName: "BombayRents",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "BombayRents — real rents in Mumbai & Navi Mumbai, no brokers",
+    description:
+      "Crowdsourced map of actual rents paid by tenants across Mumbai and Navi Mumbai. Anonymous, free, no brokerage.",
+    url: "https://bombayrents.com",
+    siteName: "BombayRents",
+    type: "website",
+    locale: "en_IN",
+  },
+  twitter: {
+    card: "summary",
+    title: "BombayRents — real rents in Mumbai & Navi Mumbai, no brokers",
+    description:
+      "Crowdsourced map of actual rents paid by tenants across Mumbai and Navi Mumbai. Anonymous, free, no brokerage.",
+  },
 };
 
 // Map style, tiles and glyphs all come from openfreemap; pins come from
